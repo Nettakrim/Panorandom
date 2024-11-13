@@ -3,7 +3,6 @@ package com.nettakrim.panorandom;
 import net.fabricmc.api.ClientModInitializer;
 
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.CubeMapRenderer;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
