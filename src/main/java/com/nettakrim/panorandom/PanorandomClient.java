@@ -19,6 +19,9 @@ public class PanorandomClient implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	public static final List<Identifier> PANORAMAS = new ArrayList<>();
+	public static final List<Identifier> ENABLED = new ArrayList<>();
+	public static Identifier activePanorama;
+
 	public static CubeMapRenderer cubeMapRenderer;
 
 	@Override
@@ -27,10 +30,19 @@ public class PanorandomClient implements ClientModInitializer {
 	}
 
 	public static void randomisePanorama() {
-		if (PANORAMAS.isEmpty()) {
+		if (ENABLED.isEmpty()) {
+			setPanorama(null);
+		} else {
+			setPanorama(ENABLED.get(MathHelper.floor(Math.random() * ENABLED.size())));
+		}
+	}
+
+	public static void setPanorama(Identifier identifier) {
+		if (identifier == null) {
 			cubeMapRenderer = null;
 		} else {
-			cubeMapRenderer = new CubeMapRenderer(PANORAMAS.get(MathHelper.floor(Math.random() * PANORAMAS.size())));
+			cubeMapRenderer = new CubeMapRenderer(identifier);
 		}
+		activePanorama = identifier;
 	}
 }

@@ -16,6 +16,9 @@
 	"entrypoints": {
 		"client": [
 			"com.nettakrim.panorandom.PanorandomClient"
+		],
+		"modmenu": [
+			"com.nettakrim.panorandom.ModMenuCompat"
 		]
 	},
 	"mixins": [

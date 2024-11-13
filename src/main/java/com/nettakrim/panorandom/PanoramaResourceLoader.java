@@ -18,6 +18,7 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
     @Override
     protected Set<Map.Entry<String,List<Resource>>> prepare(ResourceManager manager, Profiler profiler) {
         PanorandomClient.PANORAMAS.clear();
+        PanorandomClient.ENABLED.clear();
 
         Map<String, List<Resource>> panoramaSets = new HashMap<>();
 
@@ -62,6 +63,9 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
                 registerNativeBackedImage(textureManager, id+i+".png", resources.get(i));
             }
         }
+
+        Collections.sort(PanorandomClient.PANORAMAS);
+        PanorandomClient.ENABLED.addAll(PanorandomClient.PANORAMAS);
     }
 
     private void registerNativeBackedImage(TextureManager textureManager, String id, Resource resource) {
