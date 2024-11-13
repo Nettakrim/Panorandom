@@ -66,6 +66,8 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
 
         Collections.sort(PanorandomClient.PANORAMAS);
         PanorandomClient.ENABLED.addAll(PanorandomClient.PANORAMAS);
+        //TODO: load enabled from file
+        PanorandomClient.randomisePanorama();
     }
 
     private void registerNativeBackedImage(TextureManager textureManager, String id, Resource resource) {
