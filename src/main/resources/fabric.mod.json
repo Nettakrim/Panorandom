@@ -1,0 +1,34 @@
+{
+	"schemaVersion": 1,
+	"id": "panorandom",
+	"version": "${version}",
+	"name": "Panorandom",
+	"description": "Picks a random panorama from all resourcepacks",
+	"authors": [
+		"Nettakrim"
+	],
+	"contact": {
+		"sources": "https://github.com/Nettakrim/Panorandom"
+	},
+	"license": "LGPL-3.0",
+	"icon": "assets/panorandom/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.nettakrim.panorandom.PanorandomClient"
+		]
+	},
+	"mixins": [
+		"panorandom.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.9",
+		"minecraft": "~1.21.3",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	},
+	"accessWidener" : "panorandom.accesswidener"
+}
