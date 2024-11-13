@@ -21,7 +21,7 @@ public class ConfigScreen extends GameOptionsScreen {
         if (this.body != null) {
             List<ClickableWidget> widgets = new ArrayList<>();
 
-            widgets.add(ButtonWidget.builder(Text.literal("..."), button -> {}).build());
+            widgets.add(ButtonWidget.builder(translate(PanorandomClient.modes[PanorandomClient.rerollMode]), button -> button.setMessage(translate(PanorandomClient.cycleRerollMode()))).build());
             widgets.add(ButtonWidget.builder(translate("random"), button -> PanorandomClient.randomisePanorama()).build());
 
             for (Identifier identifier : PanorandomClient.PANORAMAS) {

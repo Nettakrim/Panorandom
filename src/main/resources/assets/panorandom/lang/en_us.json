@@ -1,6 +1,11 @@
 {
   "panorandom.name": "Panorandom",
-  "panorandom.random": "Re-Roll",
+
+  "panorandom.on_title_screen": "Re-Roll on Title Screen",
+  "panorandom.on_screen_change": "Re-Roll on Screen Change",
+  "panorandom.on_reload": "Re-Roll on Reload",
+
+  "panorandom.random": "Re-Roll Now",
   "panorandom.enabled": "Enabled",
   "panorandom.disabled": "Disabled"
 }

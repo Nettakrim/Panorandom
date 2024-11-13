@@ -22,6 +22,9 @@ public class PanorandomClient implements ClientModInitializer {
 	public static final List<Identifier> ENABLED = new ArrayList<>();
 	public static Identifier activePanorama;
 
+	public static int rerollMode = 0;
+	public static final String[] modes = new String[] {"on_title_screen", "on_screen_change", "on_reload"};
+
 	public static CubeMapRenderer cubeMapRenderer;
 
 	@Override
@@ -33,7 +36,19 @@ public class PanorandomClient implements ClientModInitializer {
 		if (ENABLED.isEmpty()) {
 			setPanorama(null);
 		} else {
-			setPanorama(ENABLED.get(MathHelper.floor(Math.random() * ENABLED.size())));
+			Identifier identifier;
+			int size = ENABLED.size();
+
+			int attempts = size == 1 ? 100 : 0;
+			do {
+				identifier = ENABLED.get(MathHelper.floor(Math.random() * size));
+				if (identifier != activePanorama) {
+					break;
+				}
+				attempts++;
+			} while (attempts < 100);
+
+			setPanorama(identifier);
 		}
 	}
 
@@ -44,5 +59,10 @@ public class PanorandomClient implements ClientModInitializer {
 			cubeMapRenderer = new CubeMapRenderer(identifier);
 		}
 		activePanorama = identifier;
+	}
+
+	public static String cycleRerollMode() {
+		rerollMode = (rerollMode+1)%3;
+		return modes[rerollMode];
 	}
 }

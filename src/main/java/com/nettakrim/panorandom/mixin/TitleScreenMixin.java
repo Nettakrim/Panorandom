@@ -11,6 +11,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class TitleScreenMixin {
     @Inject(method = "<init>()V", at = @At("TAIL"))
     private void randomisePanorama(CallbackInfo ci) {
-        PanorandomClient.randomisePanorama();
+        if (PanorandomClient.rerollMode == 0) {
+            PanorandomClient.randomisePanorama();
+        }
     }
 }
