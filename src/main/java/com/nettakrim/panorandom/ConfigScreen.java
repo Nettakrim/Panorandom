@@ -34,7 +34,7 @@ public class ConfigScreen extends GameOptionsScreen {
 
     protected void addPanoramaButton(List<ClickableWidget> widgets, Identifier identifier) {
         String name = identifier.toString().substring(PanorandomClient.MOD_ID.length()+1);
-        boolean enabled = PanorandomClient.ENABLED.contains(identifier);
+        boolean enabled = !PanorandomClient.DISABLED.contains(identifier);
 
         ClickableWidget panoramaButton = ButtonWidget.builder(Text.literal(name), button -> PanorandomClient.setPanorama(identifier)).build();
         panoramaButton.active = enabled;
@@ -56,15 +56,23 @@ public class ConfigScreen extends GameOptionsScreen {
                     PanorandomClient.setPanorama(identifier);
                 }
             }
+            PanorandomClient.DISABLED.remove(identifier);
         } else {
             PanorandomClient.ENABLED.remove(identifier);
             if (PanorandomClient.activePanorama.equals(identifier)) {
                 PanorandomClient.randomisePanorama();
             }
+            PanorandomClient.DISABLED.add(identifier);
         }
     }
 
     protected static Text translate(String key) {
         return Text.translatable(PanorandomClient.MOD_ID+"."+key);
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        PanorandomClient.DATA.save();
     }
 }

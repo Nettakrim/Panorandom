@@ -66,7 +66,7 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
 
         Collections.sort(PanorandomClient.PANORAMAS);
         PanorandomClient.ENABLED.addAll(PanorandomClient.PANORAMAS);
-        //TODO: load enabled from file
+        PanorandomClient.ENABLED.removeIf(PanorandomClient.DISABLED::contains);
         PanorandomClient.randomisePanorama();
     }
 

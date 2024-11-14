@@ -11,7 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PanorandomClient implements ClientModInitializer {
 	public static final String MOD_ID = "panorandom";
@@ -20,6 +22,7 @@ public class PanorandomClient implements ClientModInitializer {
 
 	public static final List<Identifier> PANORAMAS = new ArrayList<>();
 	public static final List<Identifier> ENABLED = new ArrayList<>();
+	public static final Set<Identifier> DISABLED = new HashSet<>();
 	public static Identifier activePanorama;
 
 	public static int rerollMode = 0;
@@ -27,9 +30,12 @@ public class PanorandomClient implements ClientModInitializer {
 
 	public static CubeMapRenderer cubeMapRenderer;
 
+	public static Data DATA;
+
 	@Override
 	public void onInitializeClient() {
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new PanoramaResourceLoader());
+		DATA = new Data();
 	}
 
 	public static void randomisePanorama() {
