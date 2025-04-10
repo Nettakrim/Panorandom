@@ -75,9 +75,10 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
             InputStream inputStream = resource.getInputStream();
             NativeImage nativeImage = NativeImage.read(inputStream);
             inputStream.close();
-            NativeImageBackedTexture texture = new NativeImageBackedTexture(nativeImage);
 
-            textureManager.registerTexture(Identifier.of(PanorandomClient.MOD_ID, id), texture);
+            Identifier identifier = Identifier.of(PanorandomClient.MOD_ID, id);
+            NativeImageBackedTexture texture = new NativeImageBackedTexture(identifier::toString, nativeImage);
+            textureManager.registerTexture(identifier, texture);
         } catch (Throwable err) {
             PanorandomClient.LOGGER.info("ERROR CREATING PANORAMA IMAGE:\n"+err);
         }
