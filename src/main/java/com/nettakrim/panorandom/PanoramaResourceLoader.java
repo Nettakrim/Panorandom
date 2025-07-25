@@ -2,14 +2,10 @@ package com.nettakrim.panorandom;
 
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.client.texture.TextureManager;
 import net.minecraft.resource.*;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
 
-import java.io.InputStream;
 import java.util.*;
 
 public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Set<Map.Entry<String,List<Resource>>>> implements IdentifiableResourceReloadListener {
@@ -46,7 +42,6 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
 
     @Override
     protected void apply(Set<Map.Entry<String,List<Resource>>> prepared, ResourceManager manager, Profiler profiler) {
-        TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
         for (Map.Entry<String,List<Resource>> panoramaSet : prepared) {
             StringBuilder builder = new StringBuilder(panoramaSet.getKey().toLowerCase(Locale.ROOT));
             for (int i = 0; i < builder.length(); i++) {
@@ -54,34 +49,17 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
                     builder.setCharAt(i, '_');
                 }
             }
-            String id = builder.toString();
-            PanorandomClient.PANORAMAS.add(Identifier.of(PanorandomClient.MOD_ID, id));
+            Identifier identifier = Identifier.of(PanorandomClient.MOD_ID, builder.toString());
 
-            id += "_";
-            List<Resource> resources = panoramaSet.getValue();
-            for (int i = 0; i < resources.size(); i++) {
-                registerNativeBackedImage(textureManager, id+i+".png", resources.get(i));
-            }
+            PanorandomClient.LOGGER.info("registering cubemap textures "+identifier);
+            MinecraftClient.getInstance().getTextureManager().registerTexture(identifier, new PanorandomCubemapTexture(identifier, panoramaSet.getValue()));
+            PanorandomClient.PANORAMAS.add(identifier);
         }
 
         Collections.sort(PanorandomClient.PANORAMAS);
         PanorandomClient.ENABLED.addAll(PanorandomClient.PANORAMAS);
         PanorandomClient.ENABLED.removeIf(PanorandomClient.DISABLED::contains);
         PanorandomClient.randomisePanorama();
-    }
-
-    private void registerNativeBackedImage(TextureManager textureManager, String id, Resource resource) {
-        try {
-            InputStream inputStream = resource.getInputStream();
-            NativeImage nativeImage = NativeImage.read(inputStream);
-            inputStream.close();
-
-            Identifier identifier = Identifier.of(PanorandomClient.MOD_ID, id);
-            NativeImageBackedTexture texture = new NativeImageBackedTexture(identifier::toString, nativeImage);
-            textureManager.registerTexture(identifier, texture);
-        } catch (Throwable err) {
-            PanorandomClient.LOGGER.info("ERROR CREATING PANORAMA IMAGE:\n"+err);
-        }
     }
 
     @Override

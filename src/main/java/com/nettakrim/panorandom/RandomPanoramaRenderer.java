@@ -4,6 +4,8 @@ import net.minecraft.client.gui.CubeMapRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.RotatingCubeMapRenderer;
 
+import java.util.Arrays;
+
 public class RandomPanoramaRenderer extends RotatingCubeMapRenderer {
     private final CubeMapRenderer original;
 
@@ -13,8 +15,12 @@ public class RandomPanoramaRenderer extends RotatingCubeMapRenderer {
     }
 
     @Override
-    public void render(DrawContext context, int width, int height, float alpha, float tickDelta) {
+    public void render(DrawContext context, int width, int height, boolean rotate) {
         cubeMap = PanorandomClient.cubeMapRenderer == null ? original : PanorandomClient.cubeMapRenderer;
-        super.render(context, width, height, alpha, tickDelta);
+        try {
+            super.render(context, width, height, rotate);
+        } catch (Exception err) {
+            PanorandomClient.LOGGER.info("Error Rendering Panorama: "+err.getMessage()+" "+ Arrays.toString(err.getStackTrace()));
+        }
     }
 }
