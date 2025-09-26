@@ -59,7 +59,7 @@ public class PanorandomClient implements ClientModInitializer {
 	}
 
 	public static void setPanorama(Identifier identifier) {
-		PanorandomClient.LOGGER.info("setting panorama to: "+identifier);
+        PanorandomClient.LOGGER.info("setting panorama to: {}", identifier);
 		if (identifier == null) {
 			cubeMapRenderer = null;
 		} else {
