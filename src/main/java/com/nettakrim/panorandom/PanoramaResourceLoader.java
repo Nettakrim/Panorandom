@@ -2,21 +2,24 @@ package com.nettakrim.panorandom;
 
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.texture.NativeImage;
 import net.minecraft.resource.*;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
-public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Set<Map.Entry<String,List<Resource>>>> implements IdentifiableResourceReloadListener {
+public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Set<Map.Entry<String,List<NativeImage>>>> implements IdentifiableResourceReloadListener {
     public static final String resourceLocation = "textures/gui/title/background";
 
     @Override
-    protected Set<Map.Entry<String,List<Resource>>> prepare(ResourceManager manager, Profiler profiler) {
+    protected Set<Map.Entry<String,List<NativeImage>>> prepare(ResourceManager manager, Profiler profiler) {
         PanorandomClient.PANORAMAS.clear();
         PanorandomClient.ENABLED.clear();
 
-        Map<String, List<IndexedResource>> unsortedSets = new HashMap<>();
+        Map<String, List<IndexedNativeImage>> unsortedSets = new HashMap<>();
 
         ResourceFinder resourceFinder = new ResourceFinder(resourceLocation, ".png");
         for (Map.Entry<Identifier, List<Resource>> identifierResourceEntry : resourceFinder.findAllResources(manager).entrySet()) {
@@ -32,16 +35,20 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
                 int faceIndex = name.charAt(1) - '0';
                 String panoramaSet = resource.getPackId() + "/" + name.substring(0, length - 2);
 
-                List<IndexedResource> resources = unsortedSets.computeIfAbsent(panoramaSet, k -> new ArrayList<>());
-                resources.add(new IndexedResource(resource, faceIndex));
+                List<IndexedNativeImage> resources = unsortedSets.computeIfAbsent(panoramaSet, k -> new ArrayList<>());
+                try (InputStream stream = resource.getInputStream()) {
+                    resources.add(new IndexedNativeImage(NativeImage.read(stream), faceIndex));
+                } catch (IOException error) {
+                    PanorandomClient.LOGGER.warn("Failed to prepare panorama with id '{}': {}", name, error);
+                }
             }
         }
         unsortedSets.entrySet().removeIf(panoramaSet -> panoramaSet.getValue().size() != 6);
 
-        Map<String, List<Resource>> sortedSets = new HashMap<>();
+        Map<String, List<NativeImage>> sortedSets = new HashMap<>();
 
-        for (Map.Entry<String, List<IndexedResource>> entry : unsortedSets.entrySet()) {
-            List<Resource> sortedResources = entry.getValue().stream().sorted(Comparator.comparingInt(IndexedResource::faceIndex)).map(IndexedResource::resource).toList();
+        for (Map.Entry<String, List<IndexedNativeImage>> entry : unsortedSets.entrySet()) {
+            List<NativeImage> sortedResources = entry.getValue().stream().sorted(Comparator.comparingInt(IndexedNativeImage::faceIndex)).map(IndexedNativeImage::resource).toList();
             sortedSets.put(entry.getKey(), sortedResources);
         }
 
@@ -49,8 +56,8 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
     }
 
     @Override
-    protected void apply(Set<Map.Entry<String,List<Resource>>> prepared, ResourceManager manager, Profiler profiler) {
-        for (Map.Entry<String,List<Resource>> panoramaSet : prepared) {
+    protected void apply(Set<Map.Entry<String,List<NativeImage>>> prepared, ResourceManager manager, Profiler profiler) {
+        for (Map.Entry<String,List<NativeImage>> panoramaSet : prepared) {
             StringBuilder builder = new StringBuilder(panoramaSet.getKey().toLowerCase(Locale.ROOT));
             for (int i = 0; i < builder.length(); i++) {
                 if (!Identifier.isCharValid(builder.charAt(i))) {
@@ -75,5 +82,5 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
         return Identifier.of(PanorandomClient.MOD_ID, resourceLocation);
     }
 
-    private record IndexedResource(Resource resource, int faceIndex) {}
+    private record IndexedNativeImage(NativeImage resource, int faceIndex) {}
 }

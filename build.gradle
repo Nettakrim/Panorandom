@@ -4,7 +4,11 @@ plugins {
 }
 
 loom {
-	accessWidenerPath = file("src/main/resources/panorandom.accesswidener")
+	mods {
+		"panorandom" {
+			sourceSet("main")
+		}
+	}
 }
 
 version = project.mod_version
