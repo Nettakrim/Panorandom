@@ -9,3 +9,5 @@ the [Mod Menu](https://modrinth.com/mod/modmenu) config allows you to change whe
 a single resourcepack can have multiple panoramas, the mod will use any complete set of `minecraft/textures/gui/title/background/[name]_[0-5].png`
 
 this means you could have files in a resourcepack named `.../background/nether_0.png`, `.../background/nether_1.png` etc and it can pick that as the panorama, or you could put them into a subfolder, so its `".../background/nether/panorama_0.png` etc - as long as all numbers 0 to 5 are there it will count
+
+if a panorama set has an associated overlay, then that overlay will be used alongside that panorama, otherwise the vanilla overlay will be used - so, `.../background/nether_overlay.png` will be used with `.../background/nether_[0-5]`
