@@ -4,6 +4,7 @@ import com.nettakrim.panorandom.mixin.TextureManagerInvoker;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.resource.*;
 import net.minecraft.util.Identifier;
@@ -107,7 +108,7 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
                 Identifier overlayId = identifier.withSuffixedPath("_overlay");
                 if (resources.size() == 7) {
                     PanorandomClient.LOGGER.info("registering overlay texture {}", overlayId);
-                    MinecraftClient.getInstance().getTextureManager().registerTexture(overlayId, new PanorandomOverlayTexture(overlayId, resources.get(6).toNativeImage()));
+                    MinecraftClient.getInstance().getTextureManager().registerTexture(overlayId, new NativeImageBackedTexture(overlayId::toString, resources.get(6).toNativeImage()));
                 }
                 PanorandomClient.PANORAMAS.add(identifier);
             }
