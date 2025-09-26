@@ -16,11 +16,11 @@ public class RandomPanoramaRenderer extends RotatingCubeMapRenderer {
 
     @Override
     public void render(DrawContext context, int width, int height, boolean rotate) {
-        cubeMap = PanorandomClient.cubeMapRenderer == null ? original : PanorandomClient.cubeMapRenderer;
+        this.cubeMap = PanorandomClient.cubeMapRenderer == null ? this.original : PanorandomClient.cubeMapRenderer;
         try {
             super.render(context, width, height, rotate);
         } catch (Exception err) {
-            PanorandomClient.LOGGER.info("Error Rendering Panorama: "+err.getMessage()+" "+ Arrays.toString(err.getStackTrace()));
+            PanorandomClient.LOGGER.error("Error Rendering Panorama: {} {}", err.getMessage(), Arrays.toString(err.getStackTrace()));
         }
     }
 }

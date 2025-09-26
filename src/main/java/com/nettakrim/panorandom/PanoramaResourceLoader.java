@@ -16,7 +16,7 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
         PanorandomClient.PANORAMAS.clear();
         PanorandomClient.ENABLED.clear();
 
-        Map<String, List<Resource>> panoramaSets = new HashMap<>();
+        Map<String, List<IndexedResource>> unsortedSets = new HashMap<>();
 
         ResourceFinder resourceFinder = new ResourceFinder(resourceLocation, ".png");
         for (Map.Entry<Identifier, List<Resource>> identifierResourceEntry : resourceFinder.findAllResources(manager).entrySet()) {
@@ -29,15 +29,23 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
                 String id = name.substring(length - 2);
                 if (id.charAt(0) != '_' || id.charAt(1) < '0' || id.charAt(1) > '5') continue;
 
+                int faceIndex = name.charAt(1) - '0';
                 String panoramaSet = resource.getPackId() + "/" + name.substring(0, length - 2);
 
-                List<Resource> resources = panoramaSets.computeIfAbsent(panoramaSet, k -> new ArrayList<>());
-                resources.add(resource);
+                List<IndexedResource> resources = unsortedSets.computeIfAbsent(panoramaSet, k -> new ArrayList<>());
+                resources.add(new IndexedResource(resource, faceIndex));
             }
         }
-        panoramaSets.entrySet().removeIf(panoramaSet -> panoramaSet.getValue().size() != 6);
+        unsortedSets.entrySet().removeIf(panoramaSet -> panoramaSet.getValue().size() != 6);
 
-        return panoramaSets.entrySet();
+        Map<String, List<Resource>> sortedSets = new HashMap<>();
+
+        for (Map.Entry<String, List<IndexedResource>> entry : unsortedSets.entrySet()) {
+            List<Resource> sortedResources = entry.getValue().stream().sorted(Comparator.comparingInt(IndexedResource::faceIndex)).map(IndexedResource::resource).toList();
+            sortedSets.put(entry.getKey(), sortedResources);
+        }
+
+        return sortedSets.entrySet();
     }
 
     @Override
@@ -51,7 +59,7 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
             }
             Identifier identifier = Identifier.of(PanorandomClient.MOD_ID, builder.toString());
 
-            PanorandomClient.LOGGER.info("registering cubemap textures "+identifier);
+            PanorandomClient.LOGGER.info("registering cubemap textures {}", identifier);
             MinecraftClient.getInstance().getTextureManager().registerTexture(identifier, new PanorandomCubemapTexture(identifier, panoramaSet.getValue()));
             PanorandomClient.PANORAMAS.add(identifier);
         }
@@ -66,4 +74,6 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
     public Identifier getFabricId() {
         return Identifier.of(PanorandomClient.MOD_ID, resourceLocation);
     }
+
+    private record IndexedResource(Resource resource, int faceIndex) {}
 }
