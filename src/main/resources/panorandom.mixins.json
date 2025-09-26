@@ -1,13 +1,14 @@
 {
-  "required": true,
-  "package": "com.nettakrim.panorandom.mixin",
-  "compatibilityLevel": "JAVA_21",
-  "injectors": {
-    "defaultRequire": 1
-  },
-  "client": [
-    "GameRendererMixin",
-    "ScreenMixin",
-    "TitleScreenMixin"
-  ]
+    "required": true,
+    "package": "com.nettakrim.panorandom.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "client": [
+        "GameRendererMixin",
+        "ScreenMixin",
+        "TextureManagerInvoker",
+        "TitleScreenMixin"
+    ]
 }
