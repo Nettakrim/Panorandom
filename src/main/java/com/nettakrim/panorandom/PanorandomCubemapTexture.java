@@ -2,6 +2,7 @@ package com.nettakrim.panorandom;
 
 import net.minecraft.client.resource.metadata.TextureResourceMetadata;
 import net.minecraft.client.texture.CubemapTexture;
+import net.minecraft.client.texture.MipmapStrategy;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.TextureContents;
 import net.minecraft.resource.ResourceManager;
@@ -33,7 +34,7 @@ public class PanorandomCubemapTexture extends CubemapTexture {
         copyFace(nativeImage, this.resources.img0(), 4, width, height);
         copyFace(nativeImage, this.resources.img2(), 5, width, height);
 
-        return new TextureContents(nativeImage, new TextureResourceMetadata(true, false));
+        return new TextureContents(nativeImage, new TextureResourceMetadata(true, false, MipmapStrategy.AUTO, 0f));
     }
 
     private void copyFace(NativeImage nativeImage, NativeImage face, int index, int width, int height) throws IOException {
