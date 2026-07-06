@@ -1,8 +1,7 @@
 package com.nettakrim.panorandom;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.resources.Identifier;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -49,7 +48,7 @@ public class Data {
 
                 while (scanner.hasNext()) {
                     String s = scanner.nextLine();
-                    PanorandomClient.DISABLED.add(Identifier.of(s));
+                    PanorandomClient.DISABLED.add(Identifier.parse(s));
                 }
             }
 

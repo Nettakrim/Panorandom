@@ -1,48 +1,49 @@
 package com.nettakrim.panorandom;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import com.nettakrim.panorandom.mixin.TextureManagerInvoker;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.resource.*;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.profiler.Profiler;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.List;
 
-public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Set<Map.Entry<String,List<PanoramaResourceLoader.Image>>>> implements IdentifiableResourceReloadListener {
+public class PanoramaResourceLoader extends SimplePreparableReloadListener<Set<Map.Entry<String,List<PanoramaResourceLoader.Image>>>> implements IdentifiableResourceReloadListener {
     public static final String resourceLocation = "textures/gui/title/background";
 
     @Override
-    protected Set<Map.Entry<String,List<Image>>> prepare(ResourceManager manager, Profiler profiler) {
+    protected Set<Map.Entry<String,List<Image>>> prepare(ResourceManager manager, ProfilerFiller profiler) {
         try {
             Map<String, List<IndexedImage>> unsortedSets = new HashMap<>();
             Map<String, Image> overlaySets = new HashMap<>();
 
             try {
-                Optional<Resource> vanillaOverlay = MinecraftClient.getInstance().getDefaultResourcePack().getFactory().getResource(Identifier.of("minecraft", resourceLocation + "/panorama_overlay.png"));
-                if (vanillaOverlay.isPresent()) overlaySets.put("vanilla", new Image(vanillaOverlay.get().getInputStream().readAllBytes()));
+                Optional<Resource> vanillaOverlay = Minecraft.getInstance().getVanillaPackResources().asProvider().getResource(Identifier.fromNamespaceAndPath("minecraft", resourceLocation + "/panorama_overlay.png"));
+                if (vanillaOverlay.isPresent()) overlaySets.put("vanilla", new Image(vanillaOverlay.get().open().readAllBytes()));
             } catch (IOException error) {
                 PanorandomClient.LOGGER.warn("Failed to load vanilla overlay: ", error);
             }
 
-            ResourceFinder resourceFinder = new ResourceFinder(resourceLocation, ".png");
-            for (Map.Entry<Identifier, List<Resource>> identifierResourceEntry : resourceFinder.findAllResources(manager).entrySet()) {
+            FileToIdConverter resourceFinder = new FileToIdConverter(resourceLocation, ".png");
+            for (Map.Entry<Identifier, List<Resource>> identifierResourceEntry : resourceFinder.listMatchingResourceStacks(manager).entrySet()) {
                 for (Resource resource : identifierResourceEntry.getValue()) {
-                    String name = resourceFinder.toResourceId(identifierResourceEntry.getKey()).getPath();
+                    String name = resourceFinder.fileToId(identifierResourceEntry.getKey()).getPath();
 
                     int length = name.length();
                     if (length <= 2) continue;
 
                     if (name.endsWith("_overlay")) {
-                        try (InputStream stream = resource.getInputStream()) {
-                            overlaySets.put(resource.getPackId() + "/" + name.substring(0, length - "_overlay".length()), new Image(stream.readAllBytes()));
+                        try (InputStream stream = resource.open()) {
+                            overlaySets.put(resource.sourcePackId() + "/" + name.substring(0, length - "_overlay".length()), new Image(stream.readAllBytes()));
                         } catch (IOException error) {
                             PanorandomClient.LOGGER.error("Failed to prepare panorama overlay with id '{}': {}", name, error);
                         }
@@ -53,10 +54,10 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
                     if (id.charAt(0) != '_' || id.charAt(1) < '0' || id.charAt(1) > '5') continue;
 
                     int faceIndex = name.charAt(1) - '0';
-                    String panoramaSet = resource.getPackId() + "/" + name.substring(0, length - 2);
+                    String panoramaSet = resource.sourcePackId() + "/" + name.substring(0, length - 2);
 
                     List<IndexedImage> resources = unsortedSets.computeIfAbsent(panoramaSet, k -> new ArrayList<>());
-                    try (InputStream stream = resource.getInputStream()) {
+                    try (InputStream stream = resource.open()) {
                         resources.add(new IndexedImage(new Image(stream.readAllBytes()), faceIndex));
                     } catch (IOException error) {
                         PanorandomClient.LOGGER.error("Failed to prepare panorama with id '{}': {}", name, error);
@@ -90,33 +91,33 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
 
     private void clear() {
         for (Identifier id : PanorandomClient.PANORAMAS) {
-            TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
-            if (((TextureManagerInvoker)textureManager).getTextures().containsKey(id)) textureManager.destroyTexture(id);
-            if (((TextureManagerInvoker)textureManager).getTextures().containsKey(id.withSuffixedPath("_overlay"))) textureManager.destroyTexture(id.withSuffixedPath("_overlay"));
+            TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+            if (((TextureManagerInvoker)textureManager).getTextures().containsKey(id)) textureManager.release(id);
+            if (((TextureManagerInvoker)textureManager).getTextures().containsKey(id.withSuffix("_overlay"))) textureManager.release(id.withSuffix("_overlay"));
         }
         PanorandomClient.PANORAMAS.clear();
         PanorandomClient.ENABLED.clear();
     }
 
     @Override
-    protected void apply(Set<Map.Entry<String,List<Image>>> prepared, ResourceManager manager, Profiler profiler) {
+    protected void apply(Set<Map.Entry<String,List<Image>>> prepared, ResourceManager manager, ProfilerFiller profiler) {
         try {
             if (prepared == null) return;
             clear();
             for (Map.Entry<String,List<Image>> panoramaSet : prepared) {
                 StringBuilder builder = new StringBuilder(panoramaSet.getKey().toLowerCase(Locale.ROOT));
                 for (int i = 0; i < builder.length(); i++) {
-                    if (!Identifier.isCharValid(builder.charAt(i))) builder.setCharAt(i, '_');
+                    if (!Identifier.isAllowedInIdentifier(builder.charAt(i))) builder.setCharAt(i, '_');
                 }
-                Identifier identifier = Identifier.of(PanorandomClient.MOD_ID, builder.toString());
+                Identifier identifier = Identifier.fromNamespaceAndPath(PanorandomClient.MOD_ID, builder.toString());
 
                 PanorandomClient.LOGGER.info("registering cubemap texture {}", identifier);
                 List<Image> resources = panoramaSet.getValue();
-                MinecraftClient.getInstance().getTextureManager().registerTexture(identifier, new PanorandomCubemapTexture(identifier, new PanorandomCubemapTexture.CubemapImages(resources.get(0).toNativeImage(), resources.get(1).toNativeImage(), resources.get(2).toNativeImage(), resources.get(3).toNativeImage(), resources.get(4).toNativeImage(), resources.get(5).toNativeImage())));
-                Identifier overlayId = identifier.withSuffixedPath("_overlay");
+                Minecraft.getInstance().getTextureManager().registerAndLoad(identifier, new PanorandomCubemapTexture(identifier, new PanorandomCubemapTexture.CubemapImages(resources.get(0).toNativeImage(), resources.get(1).toNativeImage(), resources.get(2).toNativeImage(), resources.get(3).toNativeImage(), resources.get(4).toNativeImage(), resources.get(5).toNativeImage())));
+                Identifier overlayId = identifier.withSuffix("_overlay");
                 if (resources.size() == 7 && resources.get(6) != null) {
                     PanorandomClient.LOGGER.info("registering overlay texture {}", overlayId);
-                    MinecraftClient.getInstance().getTextureManager().registerTexture(overlayId, new NativeImageBackedTexture(overlayId::toString, resources.get(6).toNativeImage()));
+                    Minecraft.getInstance().getTextureManager().register(overlayId, new DynamicTexture(overlayId::toString, resources.get(6).toNativeImage()));
                 }
                 PanorandomClient.PANORAMAS.add(identifier);
             }
@@ -132,7 +133,7 @@ public class PanoramaResourceLoader extends SinglePreparationResourceReloader<Se
 
     @Override
     public Identifier getFabricId() {
-        return Identifier.of(PanorandomClient.MOD_ID, resourceLocation);
+        return Identifier.fromNamespaceAndPath(PanorandomClient.MOD_ID, resourceLocation);
     }
 
     private record IndexedImage(Image resource, int faceIndex) {}

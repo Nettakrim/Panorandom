@@ -3,10 +3,10 @@ package com.nettakrim.panorandom;
 import net.fabricmc.api.ClientModInitializer;
 
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.client.gui.CubeMapRenderer;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.renderer.CubeMap;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.util.Mth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,13 +28,13 @@ public class PanorandomClient implements ClientModInitializer {
 	public static int rerollMode = 0;
 	public static final String[] modes = new String[] {"on_title_screen", "on_screen_change", "on_reload"};
 
-	public static CubeMapRenderer cubeMapRenderer;
+	public static CubeMap cubeMapRenderer;
 
 	public static Data DATA;
 
 	@Override
 	public void onInitializeClient() {
-		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new PanoramaResourceLoader());
+		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new PanoramaResourceLoader());
 		DATA = new Data();
 	}
 
@@ -47,7 +47,7 @@ public class PanorandomClient implements ClientModInitializer {
 
 			int attempts = size == 1 ? 100 : 0;
 			do {
-				identifier = ENABLED.get(MathHelper.floor(Math.random() * size));
+				identifier = ENABLED.get(Mth.floor(Math.random() * size));
 				if (identifier != activePanorama) {
 					break;
 				}
@@ -63,7 +63,7 @@ public class PanorandomClient implements ClientModInitializer {
 		if (identifier == null) {
 			cubeMapRenderer = null;
 		} else {
-			cubeMapRenderer = new CubeMapRenderer(identifier);
+			cubeMapRenderer = new CubeMap(identifier);
 		}
 		activePanorama = identifier;
 	}

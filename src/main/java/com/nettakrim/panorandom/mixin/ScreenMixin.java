@@ -1,7 +1,7 @@
 package com.nettakrim.panorandom.mixin;
 
 import com.nettakrim.panorandom.PanorandomClient;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screens.Screen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

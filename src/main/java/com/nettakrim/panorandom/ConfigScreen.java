@@ -1,50 +1,49 @@
 package com.nettakrim.panorandom;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.option.GameOptionsScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.options.OptionsSubScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
-public class ConfigScreen extends GameOptionsScreen {
+public class ConfigScreen extends OptionsSubScreen {
     protected ConfigScreen(Screen parentScreen) {
-        super(parentScreen, MinecraftClient.getInstance().options, translate("name"));
+        super(parentScreen, Minecraft.getInstance().options, translate("name"));
     }
 
     @Override
     protected void addOptions() {
-        if (this.body != null) {
-            List<ClickableWidget> widgets = new ArrayList<>();
+        if (this.list != null) {
+            List<AbstractWidget> widgets = new ArrayList<>();
 
-            widgets.add(ButtonWidget.builder(translate(PanorandomClient.modes[PanorandomClient.rerollMode]), button -> button.setMessage(translate(PanorandomClient.cycleRerollMode()))).build());
-            widgets.add(ButtonWidget.builder(translate("random"), button -> PanorandomClient.randomisePanorama()).build());
+            widgets.add(Button.builder(translate(PanorandomClient.modes[PanorandomClient.rerollMode]), button -> button.setMessage(translate(PanorandomClient.cycleRerollMode()))).build());
+            widgets.add(Button.builder(translate("random"), button -> PanorandomClient.randomisePanorama()).build());
 
             for (Identifier identifier : PanorandomClient.PANORAMAS) {
                 addPanoramaButton(widgets, identifier);
             }
 
-            this.body.addAll(widgets);
+            this.list.addSmall(widgets);
         }
     }
 
-    protected void addPanoramaButton(List<ClickableWidget> widgets, Identifier identifier) {
+    protected void addPanoramaButton(List<AbstractWidget> widgets, Identifier identifier) {
         String name = identifier.toString().substring(PanorandomClient.MOD_ID.length()+1);
         boolean enabled = !PanorandomClient.DISABLED.contains(identifier);
 
-        ClickableWidget panoramaButton = ButtonWidget.builder(Text.literal(name), button -> PanorandomClient.setPanorama(identifier)).build();
+        AbstractWidget panoramaButton = Button.builder(Component.literal(name), button -> PanorandomClient.setPanorama(identifier)).build();
         panoramaButton.active = enabled;
         widgets.add(panoramaButton);
 
-        ClickableWidget toggleButton = ButtonWidget.builder(translate(enabled ? "enabled" : "disabled"), button -> toggle(panoramaButton, button, identifier)).build();
+        AbstractWidget toggleButton = Button.builder(translate(enabled ? "enabled" : "disabled"), button -> toggle(panoramaButton, button, identifier)).build();
         widgets.add(toggleButton);
     }
 
-    protected void toggle(ClickableWidget panoramaButton, ClickableWidget toggleButton, Identifier identifier) {
+    protected void toggle(AbstractWidget panoramaButton, AbstractWidget toggleButton, Identifier identifier) {
         boolean enabled = !panoramaButton.active;
         panoramaButton.active = enabled;
         toggleButton.setMessage(translate(enabled ? "enabled" : "disabled"));
@@ -66,13 +65,13 @@ public class ConfigScreen extends GameOptionsScreen {
         }
     }
 
-    protected static Text translate(String key) {
-        return Text.translatable(PanorandomClient.MOD_ID+"."+key);
+    protected static Component translate(String key) {
+        return Component.translatable(PanorandomClient.MOD_ID+"."+key);
     }
 
     @Override
-    public void close() {
-        super.close();
+    public void onClose() {
+        super.onClose();
         PanorandomClient.DATA.save();
     }
 }
