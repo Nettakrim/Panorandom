@@ -2,7 +2,7 @@ package com.nettakrim.panorandom;
 
 import net.fabricmc.api.ClientModInitializer;
 
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.client.renderer.CubeMap;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
@@ -34,7 +34,7 @@ public class PanorandomClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new PanoramaResourceLoader());
+		ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloadListener(Identifier.fromNamespaceAndPath(MOD_ID, PanoramaResourceLoader.resourceLocation), new PanoramaResourceLoader());
 		DATA = new Data();
 	}
 

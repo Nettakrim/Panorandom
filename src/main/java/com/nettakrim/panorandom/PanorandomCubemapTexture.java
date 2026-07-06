@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.texture.TextureContents;
 import net.minecraft.client.resources.metadata.texture.TextureMetadataSection;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
+import org.jspecify.annotations.NonNull;
 
 public class PanorandomCubemapTexture extends CubeMapTexture {
     private final Identifier id;
@@ -19,21 +20,22 @@ public class PanorandomCubemapTexture extends CubeMapTexture {
         this.resources = resources;
     }
 
-    public TextureContents loadContents(ResourceManager resourceManager) throws IOException {
+    public @NonNull TextureContents loadContents(@NonNull ResourceManager resourceManager) throws IOException {
         // cubemap texture order: 1, 3, 5, 4, 0, 2
-        NativeImage face = this.resources.img1();
-        int width = face.getWidth();
-        int height = face.getHeight();
-        NativeImage nativeImage = new NativeImage(width, height * 6, false);
-        face.copyRect(nativeImage, 0, 0, 0, 0, width, height, false, true);
+        try (NativeImage face = this.resources.img1()) {
+            int width = face.getWidth();
+            int height = face.getHeight();
+            NativeImage nativeImage = new NativeImage(width, height * 6, false);
+            face.copyRect(nativeImage, 0, 0, 0, 0, width, height, false, true);
 
-        copyFace(nativeImage, this.resources.img3(), 1, width, height);
-        copyFace(nativeImage, this.resources.img5(), 2, width, height);
-        copyFace(nativeImage, this.resources.img4(), 3, width, height);
-        copyFace(nativeImage, this.resources.img0(), 4, width, height);
-        copyFace(nativeImage, this.resources.img2(), 5, width, height);
+            copyFace(nativeImage, this.resources.img3(), 1, width, height);
+            copyFace(nativeImage, this.resources.img5(), 2, width, height);
+            copyFace(nativeImage, this.resources.img4(), 3, width, height);
+            copyFace(nativeImage, this.resources.img0(), 4, width, height);
+            copyFace(nativeImage, this.resources.img2(), 5, width, height);
 
-        return new TextureContents(nativeImage, new TextureMetadataSection(true, false, MipmapStrategy.AUTO, 0f));
+            return new TextureContents(nativeImage, new TextureMetadataSection(true, false, MipmapStrategy.AUTO, 0f));
+        }
     }
 
     private void copyFace(NativeImage nativeImage, NativeImage face, int index, int width, int height) throws IOException {

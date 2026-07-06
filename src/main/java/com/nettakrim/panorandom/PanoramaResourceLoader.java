@@ -2,33 +2,39 @@ package com.nettakrim.panorandom;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.nettakrim.panorandom.mixin.TextureManagerInvoker;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import org.jspecify.annotations.NonNull;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-public class PanoramaResourceLoader extends SimplePreparableReloadListener<Set<Map.Entry<String,List<PanoramaResourceLoader.Image>>>> implements IdentifiableResourceReloadListener {
+public class PanoramaResourceLoader extends SimplePreparableReloadListener<Set<Map.Entry<String,List<PanoramaResourceLoader.Image>>>> implements PreparableReloadListener {
     public static final String resourceLocation = "textures/gui/title/background";
 
     @Override
-    protected Set<Map.Entry<String,List<Image>>> prepare(ResourceManager manager, ProfilerFiller profiler) {
+    protected @NonNull Set<Map.Entry<String,List<Image>>> prepare(@NonNull ResourceManager manager, @NonNull ProfilerFiller profiler) {
         try {
             Map<String, List<IndexedImage>> unsortedSets = new HashMap<>();
             Map<String, Image> overlaySets = new HashMap<>();
 
             try {
                 Optional<Resource> vanillaOverlay = Minecraft.getInstance().getVanillaPackResources().asProvider().getResource(Identifier.fromNamespaceAndPath("minecraft", resourceLocation + "/panorama_overlay.png"));
-                if (vanillaOverlay.isPresent()) overlaySets.put("vanilla", new Image(vanillaOverlay.get().open().readAllBytes()));
+                if (vanillaOverlay.isPresent()) {
+                    try (InputStream inputStream = vanillaOverlay.get().open()) {
+                        overlaySets.put("vanilla", new Image(inputStream.readAllBytes()));
+                    }
+                }
             } catch (IOException error) {
                 PanorandomClient.LOGGER.warn("Failed to load vanilla overlay: ", error);
             }
@@ -56,7 +62,7 @@ public class PanoramaResourceLoader extends SimplePreparableReloadListener<Set<M
                     int faceIndex = name.charAt(1) - '0';
                     String panoramaSet = resource.sourcePackId() + "/" + name.substring(0, length - 2);
 
-                    List<IndexedImage> resources = unsortedSets.computeIfAbsent(panoramaSet, k -> new ArrayList<>());
+                    List<IndexedImage> resources = unsortedSets.computeIfAbsent(panoramaSet, _ -> new ArrayList<>());
                     try (InputStream stream = resource.open()) {
                         resources.add(new IndexedImage(new Image(stream.readAllBytes()), faceIndex));
                     } catch (IOException error) {
@@ -86,7 +92,7 @@ public class PanoramaResourceLoader extends SimplePreparableReloadListener<Set<M
         } catch (Exception error) {
             PanorandomClient.LOGGER.error("Failed to prepare panorandom: ", error);
         }
-        return null;
+        return Set.of();
     }
 
     private void clear() {
@@ -100,9 +106,8 @@ public class PanoramaResourceLoader extends SimplePreparableReloadListener<Set<M
     }
 
     @Override
-    protected void apply(Set<Map.Entry<String,List<Image>>> prepared, ResourceManager manager, ProfilerFiller profiler) {
+    protected void apply(@NonNull Set<Map.Entry<String,List<Image>>> prepared, @NonNull ResourceManager manager, @NonNull ProfilerFiller profiler) {
         try {
-            if (prepared == null) return;
             clear();
             for (Map.Entry<String,List<Image>> panoramaSet : prepared) {
                 StringBuilder builder = new StringBuilder(panoramaSet.getKey().toLowerCase(Locale.ROOT));
@@ -129,11 +134,6 @@ public class PanoramaResourceLoader extends SimplePreparableReloadListener<Set<M
         } catch (Exception error) {
             PanorandomClient.LOGGER.error("Failed to apply panorandom: ", error);
         }
-    }
-
-    @Override
-    public Identifier getFabricId() {
-        return Identifier.fromNamespaceAndPath(PanorandomClient.MOD_ID, resourceLocation);
     }
 
     private record IndexedImage(Image resource, int faceIndex) {}
