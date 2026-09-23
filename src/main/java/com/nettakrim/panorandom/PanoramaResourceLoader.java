@@ -29,7 +29,7 @@ public class PanoramaResourceLoader extends SimplePreparableReloadListener<Set<M
             Map<String, Image> overlaySets = new HashMap<>();
 
             try {
-                Optional<Resource> vanillaOverlay = Minecraft.getInstance().getVanillaPackResources().asProvider().getResource(Identifier.fromNamespaceAndPath("minecraft", resourceLocation + "/panorama_overlay.png"));
+                Optional<Resource> vanillaOverlay = Minecraft.getInstance().getVanillaPackResources().asResourceManager().getResource(Identifier.fromNamespaceAndPath("minecraft", resourceLocation + "/panorama_overlay.png"));
                 if (vanillaOverlay.isPresent()) {
                     try (InputStream inputStream = vanillaOverlay.get().open()) {
                         overlaySets.put("vanilla", new Image(inputStream.readAllBytes()));
